@@ -1,7 +1,7 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
 import cz.cvut.fit.wikimetric.pocclient.model.Event;
-import cz.cvut.fit.wikimetric.pocclient.ui.EventView;
+import cz.cvut.fit.wikimetric.pocclient.ui.view.EventView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-package cz.cvut.fit.wikimetric.pocclient.ui;
+package cz.cvut.fit.wikimetric.pocclient.ui.view;
 
 import cz.cvut.fit.wikimetric.pocclient.model.Event;
 import org.springframework.stereotype.Component;

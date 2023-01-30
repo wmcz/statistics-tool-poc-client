@@ -1,7 +1,7 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
 import cz.cvut.fit.wikimetric.pocclient.model.User;
-import cz.cvut.fit.wikimetric.pocclient.ui.UserView;
+import cz.cvut.fit.wikimetric.pocclient.ui.view.UserView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -44,6 +44,16 @@ public class UserClient {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(User.class)
+                .block();
+    }
+
+    public Collection<User> findByUsername(String username) {
+        return userWebClient.get()
+                .uri("/{username}", username)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToFlux(User.class)
+                .collectList()
                 .block();
     }
 
