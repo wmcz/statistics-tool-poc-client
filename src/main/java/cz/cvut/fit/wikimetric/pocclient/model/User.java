@@ -18,4 +18,16 @@ public class User {
         this.events = events;
         this.impact = impact;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", tags=" + tags +
+                ", events=" + events +
+                ", impact=" + impact +
+                '}';
+    }
 }

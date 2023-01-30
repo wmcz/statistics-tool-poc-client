@@ -18,4 +18,16 @@ public class EventTag {
         this.parent = parent;
         this.children = children;
     }
+
+    @Override
+    public String toString() {
+        return "EventTag{" +
+                "name='" + name + '\'' +
+                ", id=" + id +
+                ", assignable=" + assignable +
+                ", tagged=" + tagged +
+                ", parent=" + parent +
+                ", children=" + children +
+                '}';
+    }
 }

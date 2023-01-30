@@ -14,4 +14,15 @@ public class EventImpact {
         this.uploadedFiles = uploadedFiles;
         this.pageViews = pageViews;
     }
+
+    @Override
+    public String toString() {
+        return "EventImpact{" +
+                "createdPages=" + createdPages +
+                ", editedPages=" + editedPages +
+                ", edits=" + edits +
+                ", uploadedFiles=" + uploadedFiles +
+                ", pageViews=" + pageViews +
+                '}';
+    }
 }

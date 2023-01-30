@@ -21,4 +21,17 @@ public class Event {
         this.participants = participants;
         this.impact = impact;
     }
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "id=" + id +
+                ", tags=" + tags +
+                ", name='" + name + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", participants=" + participants +
+                ", impact=" + impact +
+                '}';
+    }
 }

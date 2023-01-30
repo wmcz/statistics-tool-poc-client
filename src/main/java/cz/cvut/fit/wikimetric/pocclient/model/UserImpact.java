@@ -14,4 +14,15 @@ public class UserImpact {
         this.uploadedFiles = uploadedFiles;
         this.pageViews = pageViews;
     }
+
+    @Override
+    public String toString() {
+        return "UserImpact{" +
+                "createdPages=" + createdPages +
+                ", editedPages=" + editedPages +
+                ", edits=" + edits +
+                ", uploadedFiles=" + uploadedFiles +
+                ", pageViews=" + pageViews +
+                '}';
+    }
 }
