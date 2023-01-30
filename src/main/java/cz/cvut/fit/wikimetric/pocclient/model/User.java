@@ -10,7 +10,7 @@ public class User {
     public Collection<Event> events;
     public UserImpact impact;
 
-    User(Long id, String username, String email, Collection<UserTag> tags, Collection<Event> events, UserImpact impact) {
+    public User(Long id, String username, String email, Collection<UserTag> tags, Collection<Event> events, UserImpact impact) {
         this.id = id;
         this.username = username;
         this.email = email;
