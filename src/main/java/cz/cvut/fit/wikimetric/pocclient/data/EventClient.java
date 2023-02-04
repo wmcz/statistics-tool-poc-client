@@ -57,6 +57,21 @@ public class EventClient {
     }
 
 
+    public Collection<Event> findByName(String name) {
+        return eventWebClient.get()
+                .uri("/{name}", name)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToFlux(Event.class)
+                .collectList()
+                .block();
+    }
 
-
+    public void delete(Long id) {
+        eventWebClient.delete()
+                .uri("/{id}", id)
+                .retrieve()
+                .toBodilessEntity()
+                .block(Duration.ofSeconds(5));
+    }
 }

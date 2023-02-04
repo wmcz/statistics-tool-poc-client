@@ -56,4 +56,13 @@ public class UserTagClient {
                 .block(Duration.ofSeconds(5));
     }
 
+    public Collection<UserTag> findByName(String name) {
+        return userTagWebClient.get()
+                .uri("/{name}", name)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToFlux(UserTag.class)
+                .collectList()
+                .block();
+    }
 }

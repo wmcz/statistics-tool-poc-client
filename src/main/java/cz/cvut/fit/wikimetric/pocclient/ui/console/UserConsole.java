@@ -8,9 +8,7 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 
-import java.io.Console;
 import java.util.Collection;
-import java.util.Scanner;
 
 @ShellComponent
 public class UserConsole {
@@ -34,21 +32,22 @@ public class UserConsole {
     }
 
     @ShellMethod("Přejít na detaily uživatele")
-    public void setCurrentUser(String username) {
+    public void setUser(String username) {
         Collection<User> users = userClient.findByUsername(username);
         switch (users.size()) {
-            case 0:
+            case 0 -> {
                 System.err.println("Uživatel " + username + " neexistuje.");
                 currentUserId = null;
-                return;
-            default:
+            }
+            default -> {
                 User user = users.iterator().next();
                 currentUserId = user.id;
                 currentUsername = user.username;
+            }
         }
     }
 
-    private void setCurrentUser(User user) {
+    private void setUser(User user) {
         currentUserId = user.id;
         currentUsername = user.username;
 
@@ -56,7 +55,7 @@ public class UserConsole {
 
     @ShellMethod("Zavřít detaily uživatele")
     @ShellMethodAvailability("userDetails")
-    public void unsetCurrentUser() {
+    public void unsetUser() {
         currentUserId = null;
     }
 
@@ -70,7 +69,20 @@ public class UserConsole {
                 null,
                 null
         ));
-        setCurrentUser(user);
+        setUser(user);
     }
 
+    @ShellMethod("Smazat aktuálního uživatele")
+    @ShellMethodAvailability("userDetails")
+    public void deleteUser() {
+        userClient.delete(currentUserId);
+        unsetUser();
+    }
+
+    public String getCurrentUsername() {
+        return currentUsername;
+    }
+    public Long getCurrentUserId() {
+        return currentUserId;
+    }
 }

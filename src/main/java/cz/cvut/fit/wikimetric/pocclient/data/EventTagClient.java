@@ -57,6 +57,13 @@ public class EventTagClient {
     }
 
 
-
-
+    public Collection<EventTag> findByName(String name) {
+        return eventTagWebClient.get()
+                .uri("/{name}", name)
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .bodyToFlux(EventTag.class)
+                .collectList()
+                .block();
+    }
 }

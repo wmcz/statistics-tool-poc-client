@@ -67,6 +67,11 @@ public class UserClient {
     }
 
 
-
-
+    public void delete(Long id) {
+        userWebClient.delete()
+                .uri("/{id}", id)
+                .retrieve()
+                .toBodilessEntity()
+                .block(Duration.ofSeconds(5));
+    }
 }
