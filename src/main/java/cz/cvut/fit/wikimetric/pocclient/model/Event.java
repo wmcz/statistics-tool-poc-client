@@ -1,37 +1,50 @@
 package cz.cvut.fit.wikimetric.pocclient.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class Event {
     public Long id;
-    public Collection<EventTag> tags;
+    public Collection<Long> tagIds;
     public String name;
     public Instant startDate;
     public Instant endDate;
-    public Collection<User> participants;
-    public EventImpact impact;
+    public Collection<Long> userIds;
 
-    public Event(Long id, Collection<EventTag> tags, String name, Instant startDate, Instant endDate, Collection<User> participants, EventImpact impact) {
+    public Event(@JsonProperty("id") Long id,
+                 @JsonProperty("tagIds") Collection<Long> tagIds,
+                 @JsonProperty("name") String name,
+                 @JsonProperty("startDate") Instant startDate,
+                 @JsonProperty("endDate") Instant endDate,
+                 @JsonProperty("userIds") Collection<Long> userIds) {
         this.id = id;
-        this.tags = tags;
+        this.tagIds = tagIds;
         this.name = name;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.participants = participants;
-        this.impact = impact;
+        this.userIds = userIds;
+    }
+
+    public Event(String name, Collection<Long> tagIds) {
+        this(0L, tagIds, name, null, null, new ArrayList<>());
+    }
+
+    public Event(String name) {
+        this(name, new ArrayList<>());
     }
 
     @Override
     public String toString() {
         return "Event{" +
                 "id=" + id +
-                ", tags=" + tags +
+                ", tagIds=" + tagIds +
                 ", name='" + name + '\'' +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
-                ", participants=" + participants +
-                ", impact=" + impact +
+                ", userIds=" + userIds +
                 '}';
     }
 }

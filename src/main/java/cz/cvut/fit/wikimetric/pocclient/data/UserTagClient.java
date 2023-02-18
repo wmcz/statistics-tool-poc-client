@@ -1,6 +1,6 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
-import cz.cvut.fit.wikimetric.pocclient.model.UserTag;
+import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import cz.cvut.fit.wikimetric.pocclient.ui.view.TagView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -16,53 +16,61 @@ public class UserTagClient {
     private final TagView tagView;
 
     public UserTagClient(@Value("${backend-url}") String backendUrl, TagView tagView) {
-        this.userTagWebClient = WebClient.create(backendUrl + "/tags/event-tags");
+        this.userTagWebClient = WebClient.create(backendUrl + "/tags/user-tags");
         this.tagView = tagView;
     }
 
-    public UserTag create(UserTag userTag) {
+    public Tag create(Tag tag) {
         return userTagWebClient.post()
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(userTag)
+                .bodyValue(tag)
                 .retrieve()
-                .bodyToMono(UserTag.class)
+                .bodyToMono(Tag.class)
                 .block(Duration.ofSeconds(5));
     }
 
-    public Collection<UserTag> readAll() {
+    public Collection<Tag> readAll() {
         return userTagWebClient.get()
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToFlux(UserTag.class)
+                .bodyToFlux(Tag.class)
                 .collectList()
                 .block();
     }
 
-    public UserTag readOne(Long id) {
+    public Tag readOne(Long id) {
         return userTagWebClient.get()
                 .uri("/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(UserTag.class)
+                .bodyToMono(Tag.class)
                 .block();
     }
 
-    public UserTag update(UserTag userTag) {
+    public Tag update(Tag tag) {
         return userTagWebClient.put()
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(userTag)
+                .bodyValue(tag)
                 .retrieve()
-                .bodyToMono(UserTag.class)
+                .bodyToMono(Tag.class)
                 .block(Duration.ofSeconds(5));
     }
 
-    public Collection<UserTag> findByName(String name) {
+    public Collection<Tag> findByName(String name) {
         return userTagWebClient.get()
-                .uri("/{name}", name)
+                .uri("/name/{name}", name)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToFlux(UserTag.class)
+                .bodyToFlux(Tag.class)
                 .collectList()
                 .block();
+    }
+
+    public void delete(Long id) {
+        userTagWebClient.delete()
+                .uri("/{id}", id)
+                .retrieve()
+                .toBodilessEntity()
+                .block(Duration.ofSeconds(5));
     }
 }

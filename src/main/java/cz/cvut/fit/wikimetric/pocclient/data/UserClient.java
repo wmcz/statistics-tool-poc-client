@@ -49,7 +49,7 @@ public class UserClient {
 
     public Collection<User> findByUsername(String username) {
         return userWebClient.get()
-                .uri("/{username}", username)
+                .uri("/username/{username}", username)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToFlux(User.class)

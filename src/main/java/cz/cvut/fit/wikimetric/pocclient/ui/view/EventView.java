@@ -1,5 +1,7 @@
 package cz.cvut.fit.wikimetric.pocclient.ui.view;
 
+import cz.cvut.fit.wikimetric.pocclient.data.UserClient;
+import cz.cvut.fit.wikimetric.pocclient.data.UserTagClient;
 import cz.cvut.fit.wikimetric.pocclient.model.Event;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -9,6 +11,14 @@ import java.util.Collection;
 
 @Component
 public class EventView {
+
+    private final UserClient userClient;
+    private final UserTagClient userTagClient;
+
+    public EventView(UserClient userClient, UserTagClient userTagClient) {
+        this.userClient = userClient;
+        this.userTagClient = userTagClient;
+    }
 
     public void printAll(Collection<Event> events) {
         events.forEach(this::printEvent);
@@ -32,5 +42,15 @@ public class EventView {
         }
         System.err.println(e.getMessage());
 
+    }
+
+    public void listUsers(Event event) {
+        System.out.println("\n\tÚčastníci události " + event.name + " (" + event.userIds.size() + "):");
+        event.userIds.forEach(u -> System.out.println(userClient.readOne(u).username));
+    }
+
+    public void listTags(Event event) {
+        System.out.println("\n\tTagy události " + event.name + " (" + event.tagIds.size() + "):");
+        event.tagIds.forEach(t -> System.out.println(userTagClient.readOne(t).name));
     }
 }

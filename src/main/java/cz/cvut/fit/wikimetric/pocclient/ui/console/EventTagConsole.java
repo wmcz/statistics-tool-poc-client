@@ -1,27 +1,35 @@
 package cz.cvut.fit.wikimetric.pocclient.ui.console;
 
+import cz.cvut.fit.wikimetric.pocclient.data.EventClient;
 import cz.cvut.fit.wikimetric.pocclient.data.EventTagClient;
-import cz.cvut.fit.wikimetric.pocclient.model.EventTag;
+import cz.cvut.fit.wikimetric.pocclient.model.Event;
+import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import cz.cvut.fit.wikimetric.pocclient.ui.view.TagView;
 import org.springframework.shell.Availability;
+import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Scanner;
 
 @ShellComponent
+@ShellCommandGroup("Správa tagů události")
 public class EventTagConsole {
     private final EventTagClient tagClient;
     private final TagView tagView;
+    private final EventClient eventClient;
     private Long currentTagId;
     private String currentTagName;
 
-    public EventTagConsole(EventTagClient tagClient, TagView tagView) {
+    public EventTagConsole(EventTagClient tagClient, TagView tagView, EventClient eventClient) {
         this.tagClient = tagClient;
         this.tagView = tagView;
         this.currentTagId = null;
         this.currentTagName = null;
+        this.eventClient = eventClient;
     }
 
     public Availability eventTagDetails() {
@@ -30,44 +38,109 @@ public class EventTagConsole {
                 Availability.available();
     }
 
-    @ShellMethod("Přejít na detaily tagu")
-    public void setEventTag(String name) {
-        Collection<EventTag> tags = tagClient.findByName(name);
+    @ShellMethod(value = "Vypsat tagy událostí", group = "Tagy událostí")
+    public void tagsEventList() {
+        tagClient.readAll().forEach(tagView::printEventTag);
+    }
+
+    @ShellMethod(value = "Přejít na detaily tagu", group = "Tagy událostí")
+    public void tagEventSet(String name) {
+        Collection<Tag> tags = tagClient.findByName(name);
         switch (tags.size()) {
             case 0 -> {
                 System.err.println("Tag " + name + " neexistuje.");
                 currentTagId = null;
             }
             default -> {
-                EventTag tag = tags.iterator().next();
+                Tag tag = tags.iterator().next();
                 currentTagId = tag.id;
                 currentTagName = tag.name;
             }
         }
     }
 
-    @ShellMethod("Přidat tag události")
-    public void addEventTag(String name) {
-        EventTag eventTag = tagClient.create(
-                new EventTag(
-                        name,
-                        null,
-                        true,
-                        null,
-                        null,
-                        null
-                )
-        );
-        setEventTag(eventTag);
+    private void tagEventSet(Tag tag) {
+        currentTagId = tag.id;
+        currentTagName = tag.name;
+    }
+
+    @ShellMethod("Zavřít detaily tagu")
+    @ShellMethodAvailability("eventTagDetails")
+    public void tagEventUnset() {
+        currentTagId = null;
+    }
+
+    @ShellMethod(value = "Přidat tag události", group = "Tagy událostí")
+    public void tagEventAdd(String name) {
+        tagEventSet(tagClient.create(new Tag(name)));
     }
 
     @ShellMethod("Smazat aktuální tag")
     @ShellMethodAvailability("eventTagDetails")
+    public void tagEventDelete() {
+        tagClient.delete(currentTagId);
+        tagEventUnset();
+    }
 
-    private void setEventTag(EventTag tag) {
-        currentTagId = tag.id;
-        currentTagName = tag.name;
+    @ShellMethod("Vypsat události s aktuálním tagem")
+    @ShellMethodAvailability("eventTagDetails")
+    public void tagEventList() {
+        Tag tag = tagClient.readOne(currentTagId);
+        tagView.listEvents(tag);
+    }
 
+    @ShellMethod("Přidat jednu či více událostí k aktuálnímu tagu")
+    @ShellMethodAvailability("eventTagDetails")
+    public void tagEventAssign(String[] names) {
+        Tag tag = tagClient.readOne(currentTagId);
+        for (String name : names) {
+            Collection<Event> events = eventClient.findByName(name);
+
+            if (events.isEmpty()) {
+                System.out.println("Událost " + name + " neexistuje, chcete přidat? (ano/ne)");
+                String response = new Scanner(System.in).next();
+
+                if (response.contains("ano"))
+                    tag.elementIds.add(eventClient.create(
+                            new Event(name, List.of(tag.id))).id);
+
+            } else tag.elementIds.addAll(events.stream().map(e -> e.id).toList());
+        }
+        tag = tagClient.update(tag);
+        tagView.listEvents(tag);
+    }
+
+    @ShellMethod("Odebrat jednu či více událostí z aktuálního tagu")
+    @ShellMethodAvailability("eventTagDetails")
+    public void tagEventRemove(String[] names) {
+        Tag tag = tagClient.readOne(currentTagId);
+        for (String name : names) {
+            tag.elementIds.removeIf(e -> eventClient.readOne(e).name.equals(name));
+        }
+        tag = tagClient.update(tag);
+        tagView.listEvents(tag);
+    }
+
+    @ShellMethod("Přejmenovat tag události")
+    @ShellMethodAvailability("eventTagDetails")
+    public void tagEventRename(String name) {
+        Tag tag = tagClient.readOne(currentTagId);
+        tag.name = name;
+        tagClient.update(tag);
+        tagView.printEventTag(tag);
+    }
+
+    @ShellMethod("Nastavit nadtag")
+    @ShellMethodAvailability("eventTagDetails")
+    public void tagEventParentSet(String name) {
+        Tag tag = tagClient.readOne(currentTagId);
+        Tag parent = tagClient.findByName(name).iterator().next();
+        tag.parentId = parent.id;
+        parent.childrenIds.add(tag.id);
+        tag = tagClient.update(tag);
+        tagClient.update(parent);
+
+        tagView.printEventTag(tag);
     }
 
     public Long getCurrentTagId() {

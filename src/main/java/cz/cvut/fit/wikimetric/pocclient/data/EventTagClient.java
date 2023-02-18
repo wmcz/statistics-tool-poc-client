@@ -1,6 +1,6 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
-import cz.cvut.fit.wikimetric.pocclient.model.EventTag;
+import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import cz.cvut.fit.wikimetric.pocclient.ui.view.TagView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -20,50 +20,58 @@ public class EventTagClient {
         this.tagView = tagView;
     }
 
-    public EventTag create(EventTag eventTag) {
+    public Tag create(Tag tag) {
         return eventTagWebClient.post()
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(eventTag)
+                .bodyValue(tag)
                 .retrieve()
-                .bodyToMono(EventTag.class)
+                .bodyToMono(Tag.class)
                 .block(Duration.ofSeconds(5));
     }
 
-    public Collection<EventTag> readAll() {
+    public Collection<Tag> readAll() {
         return eventTagWebClient.get()
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToFlux(EventTag.class)
+                .bodyToFlux(Tag.class)
                 .collectList()
                 .block();
     }
 
-    public EventTag readOne(Long id) {
+    public Tag readOne(Long id) {
         return eventTagWebClient.get()
                 .uri("/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(EventTag.class)
+                .bodyToMono(Tag.class)
                 .block();
     }
 
-    public EventTag update(EventTag eventTag) {
+    public Tag update(Tag tag) {
         return eventTagWebClient.put()
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(eventTag)
+                .bodyValue(tag)
                 .retrieve()
-                .bodyToMono(EventTag.class)
+                .bodyToMono(Tag.class)
                 .block(Duration.ofSeconds(5));
     }
 
 
-    public Collection<EventTag> findByName(String name) {
+    public Collection<Tag> findByName(String name) {
         return eventTagWebClient.get()
-                .uri("/{name}", name)
+                .uri("/name/{name}", name)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToFlux(EventTag.class)
+                .bodyToFlux(Tag.class)
                 .collectList()
                 .block();
+    }
+
+    public void delete(Long id) {
+        eventTagWebClient.delete()
+                .uri("/{id}", id)
+                .retrieve()
+                .toBodilessEntity()
+                .block(Duration.ofSeconds(5));
     }
 }

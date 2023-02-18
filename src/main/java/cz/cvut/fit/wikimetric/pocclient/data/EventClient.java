@@ -59,7 +59,7 @@ public class EventClient {
 
     public Collection<Event> findByName(String name) {
         return eventWebClient.get()
-                .uri("/{name}", name)
+                .uri("/name/{name}", name)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToFlux(Event.class)

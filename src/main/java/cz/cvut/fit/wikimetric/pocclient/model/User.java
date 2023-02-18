@@ -1,22 +1,31 @@
 package cz.cvut.fit.wikimetric.pocclient.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class User {
     public Long id;
     public String username;
     public String email;
-    public Collection<UserTag> tags;
-    public Collection<Event> events;
-    public UserImpact impact;
+    public Collection<Long> tagIds;
+    public Collection<Event> eventIds;
 
-    public User(Long id, String username, String email, Collection<UserTag> tags, Collection<Event> events, UserImpact impact) {
+    public User(@JsonProperty("id") Long id,
+                @JsonProperty("username") String username,
+                @JsonProperty("email") String email,
+                @JsonProperty("tagIds") Collection<Long> tagIds,
+                @JsonProperty("eventIds") Collection<Event> eventIds) {
         this.id = id;
         this.username = username;
         this.email = email;
-        this.tags = tags;
-        this.events = events;
-        this.impact = impact;
+        this.tagIds = tagIds;
+        this.eventIds = eventIds;
+    }
+
+    public User(String username) {
+        this(0L, username, null, new ArrayList<>(), new ArrayList<>());
     }
 
     @Override
@@ -25,9 +34,8 @@ public class User {
                 "id=" + id +
                 ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", tags=" + tags +
-                ", events=" + events +
-                ", impact=" + impact +
+                ", tagIds=" + tagIds +
+                ", eventIds=" + eventIds +
                 '}';
     }
 }
