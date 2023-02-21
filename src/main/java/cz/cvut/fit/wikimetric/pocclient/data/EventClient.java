@@ -1,7 +1,6 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
 import cz.cvut.fit.wikimetric.pocclient.model.Event;
-import cz.cvut.fit.wikimetric.pocclient.ui.view.EventView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -13,11 +12,8 @@ import java.util.Collection;
 @Component
 public class EventClient {
     private final WebClient eventWebClient;
-    private final EventView eventView;
-
-    public EventClient(@Value("${backend-url}") String backendUrl, EventView eventView) {
+    public EventClient(@Value("${backend-url}") String backendUrl) {
         this.eventWebClient = WebClient.create(backendUrl + "/events");
-        this.eventView = eventView;
     }
 
     public Event create(Event event) {

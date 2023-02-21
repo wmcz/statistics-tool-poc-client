@@ -1,7 +1,6 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
 import cz.cvut.fit.wikimetric.pocclient.model.User;
-import cz.cvut.fit.wikimetric.pocclient.ui.view.UserView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -13,11 +12,9 @@ import java.util.Collection;
 @Component
 public class UserClient {
     private final WebClient userWebClient;
-    private final UserView userView;
 
-    public UserClient(@Value("${backend-url}") String backendUrl, UserView userView) {
+    public UserClient(@Value("${backend-url}") String backendUrl) {
         this.userWebClient = WebClient.create(backendUrl + "/users");
-        this.userView = userView;
     }
 
     public User create(User user) {

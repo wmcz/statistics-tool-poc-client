@@ -1,7 +1,6 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
 import cz.cvut.fit.wikimetric.pocclient.model.Tag;
-import cz.cvut.fit.wikimetric.pocclient.ui.view.TagView;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -13,11 +12,8 @@ import java.util.Collection;
 @Component
 public class EventTagClient {
     private final WebClient eventTagWebClient;
-    private final TagView tagView;
-
-    public EventTagClient(@Value("${backend-url}") String backendUrl, TagView tagView) {
+    public EventTagClient(@Value("${backend-url}") String backendUrl) {
         this.eventTagWebClient = WebClient.create(backendUrl + "/tags/event-tags");
-        this.tagView = tagView;
     }
 
     public Tag create(Tag tag) {
