@@ -10,13 +10,13 @@ public class User {
     public String username;
     public String email;
     public Collection<Long> tagIds;
-    public Collection<Event> eventIds;
+    public Collection<Long> eventIds;
 
     public User(@JsonProperty("id") Long id,
                 @JsonProperty("username") String username,
                 @JsonProperty("email") String email,
                 @JsonProperty("tagIds") Collection<Long> tagIds,
-                @JsonProperty("eventIds") Collection<Event> eventIds) {
+                @JsonProperty("eventIds") Collection<Long> eventIds) {
         this.id = id;
         this.username = username;
         this.email = email;
