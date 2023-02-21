@@ -71,8 +71,11 @@ public class UserTagConsole {
     }
 
     @ShellMethod(value = "Přidat tag uživatele", group = "Tagy uživatel")
-    public void tagUserAdd(String name) {
-        tagUserSet(tagClient.create(new Tag(name)));
+    public void tagUserAdd(String[] names) {
+        for (String name : names) {
+            Tag tag = tagClient.create(new Tag(name));
+            if (names.length == 1) tagUserSet(tag);
+        }
     }
 
     @ShellMethod("Smazat aktuální tag")
@@ -91,7 +94,7 @@ public class UserTagConsole {
 
     @ShellMethod("Přidat jednoho či více uživatel k aktuálnímu tagu")
     @ShellMethodAvailability("userTagDetails")
-    public void tagUserAssign(String[] usernames) {
+    public void tagUserUserAdd(String[] usernames) {
         Tag tag = tagClient.readOne(currentTagId);
         for (String username : usernames) {
             Collection<Long> userIds = userClient.findByUsername(username).stream().map(u -> u.id).toList();
@@ -112,7 +115,7 @@ public class UserTagConsole {
 
     @ShellMethod("Odebrat jednoho či více uživatel z aktuálního tagu")
     @ShellMethodAvailability("userTagDetails")
-    public void removeUser(String[] usernames) {
+    public void tagUserUserRemove(String[] usernames) {
         Tag tag = tagClient.readOne(currentTagId);
         for (String username : usernames) {
             tag.elementIds.removeIf(u -> userClient.readOne(u).username.equals(username));
@@ -128,6 +131,15 @@ public class UserTagConsole {
         tag.name = name;
         tagClient.update(tag);
         tagView.printUserTag(tag);
+    }
+
+    @ShellMethod("Odebrat nadtag")
+    @ShellMethodAvailability("userTagDetails")
+    public void tagUserParentUnset() {
+        Tag tag = tagClient.readOne(currentTagId);
+        tag.parentId = null;
+        tag = tagClient.update(tag);
+        tagView.printEventTag(tag);
     }
 
     @ShellMethod("Nastavit nadtag")

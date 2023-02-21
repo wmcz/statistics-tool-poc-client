@@ -42,7 +42,7 @@ public class EventConsole {
     }
 
     @ShellMethod(value = "Vypsat všechny události", group = "Události")
-    public void eventsList() {
+    public void eventList() {
         Collection<Event> events = eventClient.readAll();
         System.out.println("Nalezeno " + events.size() + " událostí:");
         events.forEach(eventView::printEvent);
@@ -76,8 +76,13 @@ public class EventConsole {
     }
 
     @ShellMethod(value = "Přidat novou událost", group = "Události")
-    public void eventAdd(String name) {
-        eventSet(eventClient.create(new Event(name)));
+    public void eventAdd(String[] names) {
+        for (String name : names) {
+            Event event = eventClient.create(new Event(name));
+            eventView.printEvent(event);
+            if (names.length == 1)
+                eventSet(event);
+        }
     }
 
     @ShellMethod("Smazat aktuální událost")
@@ -89,21 +94,21 @@ public class EventConsole {
 
     @ShellMethod("Vypsat účastníky")
     @ShellMethodAvailability("eventDetails")
-    public void eventUsersList() {
+    public void eventUserList() {
         eventView.listUsers(eventClient.readOne(currentEventId));
     }
 
     @ShellMethod("Vypsat tagy")
     @ShellMethodAvailability("eventDetails")
-    public void eventTagsList() {
+    public void eventTagList() {
         eventView.listTags(eventClient.readOne(currentEventId));
     }
 
     @ShellMethod("Přidat jednoho či více uživatel k události")
     @ShellMethodAvailability("eventDetails")
-    public void eventUserAssign(String[] usernames) {
+    public void eventUserAdd(String[] names) {
         Event event = eventClient.readOne(currentEventId);
-        for (String username : usernames) {
+        for (String username : names) {
             Collection<User> users = userClient.findByUsername(username);
 
             if (users.isEmpty()) {
@@ -122,10 +127,10 @@ public class EventConsole {
 
     @ShellMethod("Odebrat jednoho či více uživatel z události")
     @ShellMethodAvailability("eventDetails")
-    public void eventUserRemove(String[] usernames) {
+    public void eventUserRemove(String[] names) {
         Event event = eventClient.readOne(currentEventId);
-        for (String username : usernames) {
-           event.userIds.removeIf(u -> userClient.readOne(u).username.equals(username));
+        for (String name : names) {
+           event.userIds.removeIf(u -> userClient.readOne(u).username.equals(name));
         }
         event = eventClient.update(event);
         eventView.listUsers(event);
@@ -133,7 +138,7 @@ public class EventConsole {
 
     @ShellMethod("Přidat jeden nebo více tagů k události")
     @ShellMethodAvailability("eventDetails")
-    public void eventTagAssign(String[] names) {
+    public void eventTagAdd(String[] names) {
         Event event = eventClient.readOne(currentEventId);
         for (String name : names) {
             Collection<Tag> tags = tagClient.findByName(name);

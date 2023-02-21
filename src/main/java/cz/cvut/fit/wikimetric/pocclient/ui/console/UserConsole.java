@@ -1,15 +1,14 @@
 package cz.cvut.fit.wikimetric.pocclient.ui.console;
 
+import cz.cvut.fit.wikimetric.pocclient.data.EventClient;
 import cz.cvut.fit.wikimetric.pocclient.data.UserClient;
 import cz.cvut.fit.wikimetric.pocclient.data.UserTagClient;
+import cz.cvut.fit.wikimetric.pocclient.model.Event;
 import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import cz.cvut.fit.wikimetric.pocclient.model.User;
 import cz.cvut.fit.wikimetric.pocclient.ui.view.UserView;
 import org.springframework.shell.Availability;
-import org.springframework.shell.standard.ShellCommandGroup;
-import org.springframework.shell.standard.ShellComponent;
-import org.springframework.shell.standard.ShellMethod;
-import org.springframework.shell.standard.ShellMethodAvailability;
+import org.springframework.shell.standard.*;
 
 import java.util.Collection;
 import java.util.Scanner;
@@ -21,19 +20,17 @@ public class UserConsole {
     private final UserClient userClient;
     private final UserTagClient tagClient;
     private final UserView userView;
+    private final EventClient eventClient;
     private Long currentUserId;
     private String currentUsername;
 
-    public UserConsole(UserClient userClient, UserTagClient tagClient, UserView userView) {
+    public UserConsole(UserClient userClient, UserTagClient tagClient, UserView userView, EventClient eventClient) {
         this.userClient = userClient;
         this.tagClient = tagClient;
         this.userView = userView;
         this.currentUserId = null;
         this.currentUsername = null;
-    }
-
-    private static Long apply(Tag t) {
-        return t.id;
+        this.eventClient = eventClient;
     }
 
     public Availability userDetails() {
@@ -43,7 +40,7 @@ public class UserConsole {
     }
 
     @ShellMethod(value = "Vypsat uživatele", group = "Uživatelé")
-    public void usersList() {
+    public void userList() {
         Collection<User> users = userClient.readAll();
         System.out.println("Nalezeno " + users.size() + " uživatel:");
         users.forEach(userView::printUser);
@@ -78,9 +75,13 @@ public class UserConsole {
     }
 
     @ShellMethod(value = "Přidat nového uživatele", group = "Uživatelé")
-    public void userAdd(String username) {
-        User user = userClient.create(new User(username));
-        userSet(user);
+    public void userAdd(String[] names) {
+        for (String username : names) {
+            User user = userClient.create(new User(username));
+            userView.printUser(user);
+            if (names.length == 1)
+                userSet(user);
+        }
     }
 
     @ShellMethod("Smazat aktuálního uživatele")
@@ -90,15 +91,21 @@ public class UserConsole {
         userUnset();
     }
 
+    @ShellMethod("Vypsat události")
+    @ShellMethodAvailability("userDetails")
+    public void userEventList() {
+        userView.listEvents(userClient.readOne(currentUserId));
+    }
+
     @ShellMethod("Vypsat tagy uživatele")
     @ShellMethodAvailability("userDetails")
-    public void userTagsList() {
+    public void userTagList() {
         userView.listTags(userClient.readOne(currentUserId));
     }
 
     @ShellMethod("Přidat jeden či více tagů k uživateli")
     @ShellMethodAvailability("userDetails")
-    public void userTagAssign(String[] names) {
+    public void userTagAdd(String[] names) {
         User user = userClient.readOne(currentUserId);
         for (String name : names) {
             Collection<Long> tagIds = tagClient.findByName(name).stream().map(t -> t.id).toList();
@@ -123,6 +130,33 @@ public class UserConsole {
         }
         user = userClient.update(user);
         userView.listTags(user);
+    }
+
+    @ShellMethod("Přiřadit uživatele k jedné či více událostí")
+    @ShellMethodAvailability("userDetails")
+    public void userEventAdd(String[] names) {
+        User user = userClient.readOne(currentUserId);
+        for (String name : names) {
+            Collection<Long> eventIds = eventClient.findByName(name).stream().map(e -> e.id).toList();
+            if (eventIds.isEmpty()) {
+                System.out.println("Událost " + name + " neexistuje, chcete přidat? (ano/ne)");
+                String response = new Scanner(System.in).next();
+
+                if (response.contains("ano"))
+                    user.eventIds.add(eventClient.create(new Event(name)).id);
+            } else user.eventIds.addAll(eventIds);
+        }
+    }
+
+    @ShellMethod("Odebrat uživatele z událostí")
+    @ShellMethodAvailability("userDetails")
+    public void userEventRemove(String[] names) {
+        User user = userClient.readOne(currentUserId);
+        for (String name : names) {
+            user.eventIds.removeIf(e -> eventClient.readOne(e).name.equals(name));
+        }
+        user = userClient.update(user);
+        userView.listEvents(user);
     }
 
     @ShellMethod("Přejmenovat uživatele")

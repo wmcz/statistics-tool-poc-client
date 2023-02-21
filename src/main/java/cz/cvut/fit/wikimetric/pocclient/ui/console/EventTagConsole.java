@@ -6,10 +6,7 @@ import cz.cvut.fit.wikimetric.pocclient.model.Event;
 import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import cz.cvut.fit.wikimetric.pocclient.ui.view.TagView;
 import org.springframework.shell.Availability;
-import org.springframework.shell.standard.ShellCommandGroup;
-import org.springframework.shell.standard.ShellComponent;
-import org.springframework.shell.standard.ShellMethod;
-import org.springframework.shell.standard.ShellMethodAvailability;
+import org.springframework.shell.standard.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +36,7 @@ public class EventTagConsole {
     }
 
     @ShellMethod(value = "Vypsat tagy událostí", group = "Tagy událostí")
-    public void tagsEventList() {
+    public void tagEventList() {
         tagClient.readAll().forEach(tagView::printEventTag);
     }
 
@@ -71,8 +68,11 @@ public class EventTagConsole {
     }
 
     @ShellMethod(value = "Přidat tag události", group = "Tagy událostí")
-    public void tagEventAdd(String name) {
-        tagEventSet(tagClient.create(new Tag(name)));
+    public void tagEventAdd(String[] names) {
+        for (String name : names) {
+            Tag tag = tagClient.create(new Tag(name));
+            if (names.length == 1) tagEventSet(tag);
+        }
     }
 
     @ShellMethod("Smazat aktuální tag")
@@ -84,14 +84,14 @@ public class EventTagConsole {
 
     @ShellMethod("Vypsat události s aktuálním tagem")
     @ShellMethodAvailability("eventTagDetails")
-    public void tagEventList() {
+    public void tagEventEventList() {
         Tag tag = tagClient.readOne(currentTagId);
         tagView.listEvents(tag);
     }
 
     @ShellMethod("Přidat jednu či více událostí k aktuálnímu tagu")
     @ShellMethodAvailability("eventTagDetails")
-    public void tagEventAssign(String[] names) {
+    public void tagEventEventAdd(String[] names) {
         Tag tag = tagClient.readOne(currentTagId);
         for (String name : names) {
             Collection<Event> events = eventClient.findByName(name);
@@ -112,7 +112,7 @@ public class EventTagConsole {
 
     @ShellMethod("Odebrat jednu či více událostí z aktuálního tagu")
     @ShellMethodAvailability("eventTagDetails")
-    public void tagEventRemove(String[] names) {
+    public void tagEventEventRemove(String[] names) {
         Tag tag = tagClient.readOne(currentTagId);
         for (String name : names) {
             tag.elementIds.removeIf(e -> eventClient.readOne(e).name.equals(name));
@@ -127,6 +127,15 @@ public class EventTagConsole {
         Tag tag = tagClient.readOne(currentTagId);
         tag.name = name;
         tagClient.update(tag);
+        tagView.printEventTag(tag);
+    }
+
+    @ShellMethod("Odebrat nadtag")
+    @ShellMethodAvailability("eventTagDetails")
+    public void tagEventParentUnset() {
+        Tag tag = tagClient.readOne(currentTagId);
+        tag.parentId = null;
+        tag = tagClient.update(tag);
         tagView.printEventTag(tag);
     }
 

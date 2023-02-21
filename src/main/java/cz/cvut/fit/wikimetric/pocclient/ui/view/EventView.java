@@ -1,5 +1,6 @@
 package cz.cvut.fit.wikimetric.pocclient.ui.view;
 
+import cz.cvut.fit.wikimetric.pocclient.data.EventTagClient;
 import cz.cvut.fit.wikimetric.pocclient.data.UserClient;
 import cz.cvut.fit.wikimetric.pocclient.data.UserTagClient;
 import cz.cvut.fit.wikimetric.pocclient.model.Event;
@@ -14,10 +15,12 @@ public class EventView {
 
     private final UserClient userClient;
     private final UserTagClient userTagClient;
+    private final EventTagClient eventTagClient;
 
-    public EventView(UserClient userClient, UserTagClient userTagClient) {
+    public EventView(UserClient userClient, UserTagClient userTagClient, EventTagClient eventTagClient) {
         this.userClient = userClient;
         this.userTagClient = userTagClient;
+        this.eventTagClient = eventTagClient;
     }
 
     public void printAll(Collection<Event> events) {
@@ -51,6 +54,6 @@ public class EventView {
 
     public void listTags(Event event) {
         System.out.println("\n\tTagy události " + event.name + " (" + event.tagIds.size() + "):");
-        event.tagIds.forEach(t -> System.out.println(userTagClient.readOne(t).name));
+        event.tagIds.forEach(t -> System.out.println(eventTagClient.readOne(t).name));
     }
 }
