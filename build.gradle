@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'cz.cvut.fit.wikimetric'
-version = '0.0.1-SNAPSHOT'
+version = '0.1'
 sourceCompatibility = '18'
 
 repositories {
