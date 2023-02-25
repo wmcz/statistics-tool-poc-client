@@ -1,7 +1,9 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
+import cz.cvut.fit.wikimetric.pocclient.model.Event;
 import cz.cvut.fit.wikimetric.pocclient.model.User;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -61,6 +63,28 @@ public class UserClient {
                 .retrieve()
                 .bodyToMono(User.class)
                 .block(Duration.ofSeconds(5));
+    }
+
+    public Collection<Event> addEvents(Long id, Collection<Long> eventIds) {
+        return userWebClient.post()
+                .uri("/{id}/events", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(eventIds)
+                .retrieve()
+                .bodyToFlux(Event.class)
+                .collectList()
+                .block();
+    }
+
+    public Collection<Event> removeEvents(Long id, Collection<Long> eventIds) {
+        return userWebClient.method(HttpMethod.DELETE)
+                .uri("/{id}/events", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(eventIds)
+                .retrieve()
+                .bodyToFlux(Event.class)
+                .collectList()
+                .block();
     }
 
 

@@ -29,7 +29,7 @@ public class Event {
     }
 
     public Event(String name, Collection<Long> tagIds) {
-        this(0L, tagIds, name, null, null, new ArrayList<>());
+        this(null, tagIds, name, null, null, new ArrayList<>());
     }
 
     public Event(String name) {

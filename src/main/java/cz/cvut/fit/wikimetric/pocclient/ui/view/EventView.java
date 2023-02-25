@@ -4,11 +4,13 @@ import cz.cvut.fit.wikimetric.pocclient.data.EventTagClient;
 import cz.cvut.fit.wikimetric.pocclient.data.UserClient;
 import cz.cvut.fit.wikimetric.pocclient.data.UserTagClient;
 import cz.cvut.fit.wikimetric.pocclient.model.Event;
+import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 @Component
 public class EventView {
@@ -16,19 +18,49 @@ public class EventView {
     private final UserClient userClient;
     private final UserTagClient userTagClient;
     private final EventTagClient eventTagClient;
+    private final UserView userView;
+    private final TagView tagView;
 
-    public EventView(UserClient userClient, UserTagClient userTagClient, EventTagClient eventTagClient) {
+    public EventView(UserClient userClient, UserTagClient userTagClient, EventTagClient eventTagClient, UserView userView, TagView tagView) {
         this.userClient = userClient;
         this.userTagClient = userTagClient;
         this.eventTagClient = eventTagClient;
+        this.userView = userView;
+        this.tagView = tagView;
+    }
+
+    private String printTags(Event event) {
+        if (event.tagIds.size() == 0)
+            return "";
+        else if (event.tagIds.size() > 4) {
+            return " [" + event.tagIds.size() + " tagů]";
+        }
+        else {
+            StringBuilder res = new StringBuilder();
+            res.append(" [Tagy: ");
+
+            Iterator<Tag> tagIterator = event.tagIds.stream().map(eventTagClient::readOne).iterator();
+            for (int i = 0; i < event.tagIds.size(); i++) {
+                if (i != 0) res.append(", ");
+                res.append("\"")
+                   .append(tagIterator.next().name)
+                   .append("\"");
+            }
+            res.append("]");
+            return res.toString();
+        }
     }
 
     public void printAll(Collection<Event> events) {
         events.forEach(this::printEvent);
     }
 
+    public String getEventString(Event event) {
+        return event.name + " (" + event.userIds.size() + " účastníků)" + printTags(event);
+    }
+
     public void printEvent(Event event) {
-        System.out.println(event.name);
+        System.out.println(getEventString(event));
     }
 
     public void printError(Throwable e) {

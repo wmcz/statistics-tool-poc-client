@@ -28,7 +28,7 @@ public class Tag {
     }
 
     public Tag(String name) {
-        this(name, 0L, true, null, new ArrayList<>(), new ArrayList<>());
+        this(name, null, true, null, new ArrayList<>(), new ArrayList<>());
     }
 
     @Override

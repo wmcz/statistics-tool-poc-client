@@ -25,7 +25,7 @@ public class User {
     }
 
     public User(String username) {
-        this(0L, username, null, new ArrayList<>(), new ArrayList<>());
+        this(null, username, null, new ArrayList<>(), new ArrayList<>());
     }
 
     @Override

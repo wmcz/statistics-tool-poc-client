@@ -6,11 +6,13 @@ import cz.cvut.fit.wikimetric.pocclient.data.UserTagClient;
 import cz.cvut.fit.wikimetric.pocclient.model.Event;
 import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import cz.cvut.fit.wikimetric.pocclient.model.User;
+import cz.cvut.fit.wikimetric.pocclient.ui.view.EventView;
 import cz.cvut.fit.wikimetric.pocclient.ui.view.UserView;
 import org.springframework.shell.Availability;
 import org.springframework.shell.standard.*;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Scanner;
 
 @ShellComponent
@@ -24,7 +26,7 @@ public class UserConsole {
     private Long currentUserId;
     private String currentUsername;
 
-    public UserConsole(UserClient userClient, UserTagClient tagClient, UserView userView, EventClient eventClient) {
+    public UserConsole(UserClient userClient, UserTagClient tagClient, UserView userView, EventClient eventClient, EventView eventView) {
         this.userClient = userClient;
         this.tagClient = tagClient;
         this.userView = userView;
@@ -135,28 +137,30 @@ public class UserConsole {
     @ShellMethod("Přiřadit uživatele k jedné či více událostí")
     @ShellMethodAvailability("userDetails")
     public void userEventAdd(String[] names) {
-        User user = userClient.readOne(currentUserId);
+        Collection<Long> eventIds = new HashSet<>(names.length);
         for (String name : names) {
-            Collection<Long> eventIds = eventClient.findByName(name).stream().map(e -> e.id).toList();
-            if (eventIds.isEmpty()) {
+            Collection<Long> newIds = eventClient.findByName(name).stream().map(e -> e.id).toList();
+            if (newIds.isEmpty()) {
                 System.out.println("Událost " + name + " neexistuje, chcete přidat? (ano/ne)");
                 String response = new Scanner(System.in).next();
 
                 if (response.contains("ano"))
-                    user.eventIds.add(eventClient.create(new Event(name)).id);
-            } else user.eventIds.addAll(eventIds);
+                    eventIds.add(eventClient.create(new Event(name)).id);
+            } else eventIds.addAll(newIds);
         }
+        userClient.addEvents(currentUserId, eventIds);
+        userView.listEvents(userClient.readOne(currentUserId));
     }
 
     @ShellMethod("Odebrat uživatele z událostí")
     @ShellMethodAvailability("userDetails")
     public void userEventRemove(String[] names) {
-        User user = userClient.readOne(currentUserId);
+        Collection<Long> eventIds = new HashSet<>(names.length);
         for (String name : names) {
-            user.eventIds.removeIf(e -> eventClient.readOne(e).name.equals(name));
+            eventIds.addAll(eventClient.findByName(name).stream().map(e -> e.id).toList());
         }
-        user = userClient.update(user);
-        userView.listEvents(user);
+        userClient.removeEvents(currentUserId, eventIds);
+        userView.listEvents(userClient.readOne(currentUserId));
     }
 
     @ShellMethod("Přejmenovat uživatele")

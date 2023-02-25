@@ -1,7 +1,9 @@
 package cz.cvut.fit.wikimetric.pocclient.data;
 
 import cz.cvut.fit.wikimetric.pocclient.model.Tag;
+import cz.cvut.fit.wikimetric.pocclient.model.User;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -69,5 +71,36 @@ public class UserTagClient {
                 .retrieve()
                 .toBodilessEntity()
                 .block(Duration.ofSeconds(5));
+    }
+
+    public Collection<User> getUsers(Long id) {
+        return userTagWebClient.get()
+                .uri("/{id}/users?withChildren=true", id)
+                .retrieve()
+                .bodyToFlux(User.class)
+                .collectList()
+                .block();
+    }
+
+    public Collection<User> addUsers(Long id, Collection<Long> userIds) {
+        return userTagWebClient.post()
+                .uri("/{id}/users", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(userIds)
+                .retrieve()
+                .bodyToFlux(User.class)
+                .collectList()
+                .block();
+    }
+
+    public Collection<User> removeUsers(Long id, Collection<Long> userIds) {
+        return userTagWebClient.method(HttpMethod.DELETE)
+                .uri("/{id}/users", id)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(userIds)
+                .retrieve()
+                .bodyToFlux(User.class)
+                .collectList()
+                .block();
     }
 }

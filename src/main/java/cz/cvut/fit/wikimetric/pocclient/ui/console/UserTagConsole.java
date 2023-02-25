@@ -5,6 +5,7 @@ import cz.cvut.fit.wikimetric.pocclient.data.UserTagClient;
 import cz.cvut.fit.wikimetric.pocclient.model.Tag;
 import cz.cvut.fit.wikimetric.pocclient.model.User;
 import cz.cvut.fit.wikimetric.pocclient.ui.view.TagView;
+import cz.cvut.fit.wikimetric.pocclient.ui.view.UserView;
 import org.springframework.shell.Availability;
 import org.springframework.shell.standard.ShellCommandGroup;
 import org.springframework.shell.standard.ShellComponent;
@@ -12,6 +13,7 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellMethodAvailability;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Scanner;
 
 @ShellComponent
@@ -20,15 +22,17 @@ public class UserTagConsole {
     private final UserTagClient tagClient;
     private final UserClient userClient;
     private final TagView tagView;
+    private final UserView userView;
     private Long currentTagId;
     private String currentTagName;
 
-    public UserTagConsole(UserTagClient tagClient, UserClient userClient, TagView tagView) {
+    public UserTagConsole(UserTagClient tagClient, UserClient userClient, TagView tagView, UserView userView) {
         this.tagClient = tagClient;
         this.userClient = userClient;
         this.tagView = tagView;
         this.currentTagId = null;
         this.currentTagName = null;
+        this.userView = userView;
     }
 
     public Availability userTagDetails() {
@@ -38,8 +42,10 @@ public class UserTagConsole {
     }
 
     @ShellMethod(value = "Vypsat tagy uživatel", group = "Tagy uživatel")
-    public void tagsUserList() {
-        tagClient.readAll().forEach(tagView::printEventTag);
+    public void tagUserList() {
+        Collection<Tag> tags = tagClient.readAll();
+        System.out.println("Nalezeno " + tags.size() + " tagů uživatel:");
+        tags.forEach(tagView::printUserTag);
     }
 
     @ShellMethod(value = "Přejít na detaily tagu", group = "Tagy uživatel")
@@ -73,8 +79,13 @@ public class UserTagConsole {
     @ShellMethod(value = "Přidat tag uživatele", group = "Tagy uživatel")
     public void tagUserAdd(String[] names) {
         for (String name : names) {
-            Tag tag = tagClient.create(new Tag(name));
-            if (names.length == 1) tagUserSet(tag);
+            try {
+                Tag tag = tagClient.create(new Tag(name));
+                tagView.printUserTag(tag);
+                if (names.length == 1) tagUserSet(tag);
+            } catch (Exception e) {
+                tagView.printError(e);
+            }
         }
     }
 
@@ -85,47 +96,47 @@ public class UserTagConsole {
         tagUserUnset();
     }
 
-    @ShellMethod("Vypsat uživatele s aktuálním tagem")
+    @ShellMethod("Vypsat uživatele s aktuálním tagem či jeho podtagem")
     @ShellMethodAvailability("userTagDetails")
-    public void tagUserList() {
-        Tag tag = tagClient.readOne(currentTagId);
-        tagView.listUsers(tag);
+    public void tagUserUserList() {
+        Collection<User> users = tagClient.getUsers(currentTagId);
+        System.out.println("Nalezeno " + users.size() + " uživatel:");
+        users.forEach(userView::printUser);
     }
 
     @ShellMethod("Přidat jednoho či více uživatel k aktuálnímu tagu")
     @ShellMethodAvailability("userTagDetails")
-    public void tagUserUserAdd(String[] usernames) {
-        Tag tag = tagClient.readOne(currentTagId);
-        for (String username : usernames) {
-            Collection<Long> userIds = userClient.findByUsername(username).stream().map(u -> u.id).toList();
+    public void tagUserUserAdd(String[] names) {
+        Collection<Long> userIds = new HashSet<>(names.length);
+        for (String username : names) {
+            Collection<Long> newIds = userClient.findByUsername(username).stream().map(u -> u.id).toList();
 
-            if (userIds.isEmpty()) {
+            if (newIds.isEmpty()) {
                 System.out.println("Uživatel " + username + " neexistuje, chcete vytvořit? (ano/ne)");
                 String response = new Scanner(System.in).next();
 
                 if (response.contains("ano"))
-                    tag.elementIds.add(
-                            userClient.create(new User(username)).id);
+                    userIds.add(userClient.create(new User(username)).id);
             }
-            else tag.elementIds.addAll(userIds);
+            else userIds.addAll(newIds);
         }
-        tag = tagClient.update(tag);
-        tagView.listUsers(tag);
+        tagClient.addUsers(currentTagId, userIds);
+        tagView.listUsers(tagClient.readOne(currentTagId));
     }
 
     @ShellMethod("Odebrat jednoho či více uživatel z aktuálního tagu")
     @ShellMethodAvailability("userTagDetails")
-    public void tagUserUserRemove(String[] usernames) {
-        Tag tag = tagClient.readOne(currentTagId);
-        for (String username : usernames) {
-            tag.elementIds.removeIf(u -> userClient.readOne(u).username.equals(username));
+    public void tagUserUserRemove(String[] names) {
+        Collection<Long> userIds = new HashSet<>(names.length);
+        for (String name : names) {
+            userIds.addAll(userClient.findByUsername(name).stream().map(e -> e.id).toList());
         }
-        tag = tagClient.update(tag);
-        tagView.listUsers(tag);
+        tagClient.removeUsers(currentTagId, userIds);
+        tagView.listUsers(tagClient.readOne(currentTagId));
     }
 
     @ShellMethod("Přejmenovat tag uživatele")
-    @ShellMethodAvailability("eventTagDetails")
+    @ShellMethodAvailability("userTagDetails")
     public void tagUserRename(String name) {
         Tag tag = tagClient.readOne(currentTagId);
         tag.name = name;
